@@ -80,13 +80,16 @@ class IntcodeEngine:
         if not self.awaiting_inputs:
             if not self.interactive:
                 raise IntcodeError("Not enough inputs")
-            while True:
-                try:
-                    self.awaiting_inputs.append(int(input('Input:')))
-                except ValueError:
-                    print("Erroneous value, please retry")
-                else:
-                    break
+            elif self.interactive is not True:
+                self.awaiting_inputs.append(self.interactive())
+            else:
+                while True:
+                    try:
+                        self.awaiting_inputs.append(int(input('Input:')))
+                    except ValueError:
+                        print("Erroneous value, please retry")
+                    else:
+                        break
         return self.awaiting_inputs.pop(0)
 
     def get_output(self):
