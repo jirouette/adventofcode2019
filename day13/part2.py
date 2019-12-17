@@ -4,6 +4,7 @@ from intcode import IntcodeEngine
 from part1 import Arcade
 import tty, sys, termios
 import json
+import time
 
 class FunctionalArcade(Arcade):
     TILES = {
@@ -17,12 +18,18 @@ class FunctionalArcade(Arcade):
     def __init__(self, engine):
         super().__init__(engine)
         self.score = 0
+        self.ball_x = 0
+        self.paddle_x = 0
 
     def draw(self, x, y, tile_id):
         if x == -1 and y == 0:
             # updating score
             self.score = tile_id
         else:
+            if tile_id == Arcade.BALL:
+                self.ball_x = x
+            elif tile_id == Arcade.HORIZONTAL_PADDLE:
+                self.paddle_x = x
             super().draw(x,y,tile_id)
 
     def print(self):
@@ -100,11 +107,25 @@ def joystick():
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
     return ch
 
+def TAS():
+    print(chr(27) + "[2J") # clear
+    arcade.print()
+    time.sleep(0.01)
+    if arcade.paddle_x < arcade.ball_x:
+        return 1 # RIGHT
+    elif arcade.paddle_x > arcade.ball_x:
+        return -1 # LEFT
+    return 0
+
+
 if __name__ == '__main__':
-    engine = IntcodeEngine('input', interactive=joystick)
+    input_mode = TAS
+    if input('Play with keyboard? (y/N)') == 'y':
+        input_mode = joystick
+    engine = IntcodeEngine('input', interactive=input_mode)
     engine.memory[0] = 2 # let's play for free!
     arcade = FunctionalArcade(engine)
-    if input('Load state? (y/N)') == 'y':
+    if input_mode is joystick and input('Load state? (y/N)') == 'y':
         arcade.loadstate('0')
     arcade.run()
     print("FINAL SCORE : %010d"%arcade.score)
